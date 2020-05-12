@@ -51,7 +51,7 @@ class generateBatches:
             tmpTime = self.train2id["time"][tripleId]
             tmpStep = self.train2id["step"][tripleId]
             #random=rd.random()
-            for i in range(10):
+            for i in range(10):#[YAGO11K:10,WIKI12K:10,WIKI11K:3]
                 self.positiveBatch["h"].append(tmpHead)
                 self.positiveBatch["r"].append(tmpRelation)
                 self.positiveBatch["t"].append(tmpTail)
