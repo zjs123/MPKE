@@ -11,7 +11,7 @@ import torch.nn.functional as F
     
 class MPKE(nn.Module):
     
-    def __init__(self, numOfEntity, numOfRelation, numOfTime, numOfMaxLen, entityDimension, relationDimension, norm):
+    def __init__(self, numOfEntity, numOfRelation, numOfTime, numOfMaxLen, entityDimension, relationDimension, norm, norm_m, hyper_m):
         super(MPKE,self).__init__()
 
         self.numOfEntity = numOfEntity
@@ -21,6 +21,9 @@ class MPKE(nn.Module):
         self.entityDimension = entityDimension
         self.relationDimension = relationDimension
         self.norm = norm
+        self.norm_m = norm_m
+        self.hyper_p=1
+        self.hyper_m=hyper_m
         
         self.pi = 3.14159262358979323846
 
@@ -53,14 +56,11 @@ class MPKE(nn.Module):
             tensor=self.step_embeddings.weight.data
         )
 
-        self.hyper_p=1
-        self.hyper_m=0.5#[YAGO11K:0.5,WIKI12K:0.1,WIKI11K:0.5]
-        self.norm_m=2#[YAGO11K:2,WIKI12K:1,WIKI11K:2]
         
 
     def forward(self, positiveBatchHead, positiveBatchRelation, positiveBatchTail,positiveBatchTime, positiveBatchStep,corruptedBatchHead, corruptedBatchRelation, corruptedBatchTail, corruptedBatchTime, corruptedBatchStep):
 
-        step_embeddings = torch.cumsum(torch.abs(self.step_embeddings.weight.data),0)
+        step_embeddings = torch.cumsum(torch.abs(self.step_embeddings.weight.data),0)#to obtain the order emnedding of structure part
         #print(corruptedBatchTime)
         pH_embeddings = self.entity_embeddings(positiveBatchHead)
         pR_embeddings = self.relation_embeddings(positiveBatchRelation)
@@ -84,7 +84,7 @@ class MPKE(nn.Module):
         pR_embeddings = pR_embeddings*self.pi
         pT_embeddings = pT_embeddings#*self.pi
         
-        pH_embeddings = (pH_embeddings+(pH_embeddings*pTime_embedding))*self.pi
+        pH_embeddings = (pH_embeddings+(pH_embeddings*pTime_embedding))*self.pi#time processing
         pT_embeddings = (pT_embeddings+(pT_embeddings*pTime_embedding))*self.pi
 
         nH_embeddings = nH_embeddings#*self.pi
@@ -137,6 +137,7 @@ class MPKE(nn.Module):
             targetLoss_mod = torch.norm(validateHeadEmbedding_mod*validateRelationEmbedding_mod-validatestep_embedding,self.norm_m).repeat(self.numOfEntity,1)
             
             targetLoss = self.hyper_p*targetLoss_phase+self.hyper_m*targetLoss_mod
+            #score of positive fact in dataset
 
             tmpRelationEmbedding = validateRelationEmbedding.repeat(self.numOfEntity,1)
             tmpTailEmbedding = validateTailEmbedding.repeat(self.numOfEntity,1)
@@ -153,6 +154,7 @@ class MPKE(nn.Module):
             tmpLoss_mod = torch.norm(torch.abs(self.mod_e_embeddings.weight.data)*tmpRelationEmbedding_mod-tmpstepEmbedding,self.norm_m,1).view(-1,1)
             
             tmpLoss = self.hyper_m*tmpLoss_mod+self.hyper_p*tmpLoss_phase
+            #score of candidate facts by replacing head relation or tail 
 
             wrongHead = torch.nonzero(nn.functional.relu(targetLoss - tmpLoss))
             Rank_H=wrongHead.size()[0]+1

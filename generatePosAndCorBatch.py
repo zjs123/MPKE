@@ -18,7 +18,7 @@ class dataset(Dataset):
 
 class generateBatches:
 
-    def __init__(self, batch, train2id, step_list, positiveBatch, corruptedBatch,numOfEntity, numOfRelation, headRelation2Tail, tailRelation2Head,headTail2Relation):
+    def __init__(self, batch, train2id, step_list, positiveBatch, corruptedBatch,numOfEntity, numOfRelation, headRelation2Tail, tailRelation2Head,headTail2Relation,ns):
         self.batch = batch
         self.train2id = train2id
         self.step_list = step_list
@@ -29,6 +29,7 @@ class generateBatches:
         self.headRelation2Tail = headRelation2Tail
         self.tailRelation2Head = tailRelation2Head
         self.headTail2Relation = headTail2Relation
+        self.ns = ns
 
         self.generatePosAndCorBatch()
         rd.seed(0.5)
@@ -51,7 +52,7 @@ class generateBatches:
             tmpTime = self.train2id["time"][tripleId]
             tmpStep = self.train2id["step"][tripleId]
             #random=rd.random()
-            for i in range(10):#[YAGO11K:10,WIKI12K:10,WIKI11K:3]
+            for i in range(self.ns):
                 self.positiveBatch["h"].append(tmpHead)
                 self.positiveBatch["r"].append(tmpRelation)
                 self.positiveBatch["t"].append(tmpTail)

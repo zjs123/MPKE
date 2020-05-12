@@ -46,7 +46,7 @@ class double_marginLoss(nn.Module):
         zero_tensor.zero_()
         zero_tensor = autograd.Variable(zero_tensor)
         
-        pos_margin=12
+        pos_margin=margin
         neg_margin=pos_margin+margin
         return torch.sum(torch.max(neg_margin-neg, zero_tensor))+torch.sum(torch.max(pos-pos_margin,zero_tensor))
 

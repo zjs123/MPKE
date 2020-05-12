@@ -28,9 +28,11 @@ class Train:
         self.learningRate = args.lr
         self.margin_triple = args.margin
         self.margin_relation = args.margin
-        self.trade_off = args.tf
         self.norm = args.norm
         self.dataset = args.dataset
+        self.norm_m = args.norm_m
+        self.hyper_m = args.hyper_m
+        self.ns = args.ns
         
         self.Triples = None
         self.train2id = {}
@@ -73,11 +75,11 @@ class Train:
         
         self.model = None
 
-        self.train()
+        self.train()#train the model
         
-        self.write()
+        self.write()#write the result and save model
         
-        self.test()
+        self.test()#run the test dataset
     
     
     def setup_seed(self,seed):
@@ -89,7 +91,7 @@ class Train:
     def train(self):
         path = "./dataset/"+self.dataset
         data=readData(path, self.train2id, self.year2id,self.step_list,self.headRelation2Tail,self.tailRelation2Head,
-                        self.headTail2Relation,self.nums)
+                        self.headTail2Relation,self.nums)#read training data
         
         self.Triples = data.out()
         
@@ -104,7 +106,7 @@ class Train:
         
         
         self.model = MPKE(self.numOfEntity, self.numOfRelation, self.numOfTime, self.numOfMaxLen, self.entityDimension, self.relationDimension,
-                      self.norm)
+                      self.norm,self.norm_m,self.hyper_m)#init the model
 
         #self.preRead()
 
@@ -131,7 +133,7 @@ class Train:
                 self.positiveBatch = {}
                 self.corruptedBatch = {}
                 generateBatches(batch, self.train2id, self.step_list, self.positiveBatch, self.corruptedBatch,self.numOfEntity,
-                                self.numOfRelation,self.headRelation2Tail, self.tailRelation2Head, self.headTail2Relation)
+                                self.numOfRelation,self.headRelation2Tail, self.tailRelation2Head, self.headTail2Relation, self.ns)
                 optimizer.zero_grad()
                 positiveBatchHead = self.positiveBatch["h"].to(self.device)
                 positiveBatchRelation = self.positiveBatch["r"].to(self.device)
@@ -151,7 +153,6 @@ class Train:
                 rel_embeddings = self.model.relation_embeddings(torch.cat([positiveBatchRelation,corruptedBatchRelation]))
 
                 loss = Margin_Loss_D(positiveScore, negativeScore, self.margin_triple)
-                #loss = Margin_Loss_S(positiveScore, negativeScore)
                 
                 time_embeddings = self.model.time_embeddings(positiveBatchTime)
                 step_embeddings = self.model.step_embeddings(positiveBatchStep)
@@ -398,12 +399,14 @@ if __name__ == '__main__':
     parser.add_argument("--hidden",dest="dimension",type=int,default=128)
     parser.add_argument("--nbatch",dest="numOfBatches",type=int,default=100)
     parser.add_argument("--nepoch",dest="numOfEpochs",type=int,default=500)
-    parser.add_argument("--margin",dest="margin",type=float,default=12)#[YAGO11K:12,WIKI12K:18,WIKI11K:18]
-    parser.add_argument("--dataset",dest="dataset",type=str,default="YAGO11K")#[YAGO11K,WIKI12K,WIKI11K]
+    parser.add_argument("--margin",dest="margin",type=float,default=12)
+    parser.add_argument("--dataset",dest="dataset",type=str,default="YAGO11K")
     #[YAGO11K,WIKI12K,WIKI11K]
-    parser.add_argument("--lr",dest="lr",type=float,default=0.005)#[YAGO11K:0.005,WIKI12K:0.005,WIKI11K:0.001]
-    parser.add_argument("--tf",dest="tf",type=float,default=0.001)
-    parser.add_argument("--norm",dest="norm",type=int,default=1)
+    parser.add_argument("--lr",dest="lr",type=float,default=0.005)#learning rate
+    parser.add_argument("--norm",dest="norm",type=int,default=1)#the norm of semantic part
+    parser.add_argument("--norm_m",dest="norm_m",type=int,default=2)#the norm of structure part
+    parser.add_argument("--hyper_m",dest="hyper_m",type=float,default=0.5)#trade off to balance two parts of our model
+    parser.add_argument("--ns",dest="ns",type=int,default=10)#negative sampling ratio
     
     args=parser.parse_args()
     Train(args)
