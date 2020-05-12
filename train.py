@@ -398,10 +398,10 @@ if __name__ == '__main__':
     parser.add_argument("--hidden",dest="dimension",type=int,default=128)
     parser.add_argument("--nbatch",dest="numOfBatches",type=int,default=100)
     parser.add_argument("--nepoch",dest="numOfEpochs",type=int,default=500)
-    parser.add_argument("--margin",dest="margin",type=float,default=12)
-    parser.add_argument("--dataset",dest="dataset",type=str,default="YAGO11K")
+    parser.add_argument("--margin",dest="margin",type=float,default=12)#[YAGO11K:12,WIKI12K:18,WIKI11K:18]
+    parser.add_argument("--dataset",dest="dataset",type=str,default="YAGO11K")#[YAGO11K,WIKI12K,WIKI11K]
     #[YAGO11K,WIKI12K,WIKI11K]
-    parser.add_argument("--lr",dest="lr",type=float,default=0.005)
+    parser.add_argument("--lr",dest="lr",type=float,default=0.005)#[YAGO11K:0.005,WIKI12K:0.005,WIKI11K:0.001]
     parser.add_argument("--tf",dest="tf",type=float,default=0.001)
     parser.add_argument("--norm",dest="norm",type=int,default=1)
     
