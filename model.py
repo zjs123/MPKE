@@ -54,8 +54,8 @@ class MPKE(nn.Module):
         )
 
         self.hyper_p=1
-        self.hyper_m=0.5#0.01
-        self.norm_m=2
+        self.hyper_m=0.5#[YAGO11K:0.5,WIKI12K:0.1,WIKI11K:0.5]
+        self.norm_m=2#[YAGO11K:2,WIKI12K:1,WIKI11K:2]
         
 
     def forward(self, positiveBatchHead, positiveBatchRelation, positiveBatchTail,positiveBatchTime, positiveBatchStep,corruptedBatchHead, corruptedBatchRelation, corruptedBatchTail, corruptedBatchTime, corruptedBatchStep):
